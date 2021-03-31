@@ -1,4 +1,18 @@
-export default {
-    CONTRACT_ADDRESS: 'TSGNPaTUPf5nAcj6Wwu6a4bGjdg7pr9UNL',
-    ADMIN_WALLET: 'TYPGbv47eFGBCDvjrPZNgXs3JfrqPMTWS9'
+const contractAddress = 'TSB1CJbV4fQPqcPDPkuF5SUaKcZ4URDNN2';
+
+
+const utils = {
+    tronWeb: false,
+    contract: false,
+    CONTRACT_ADRESS: contractAddress,
+    adminAddress: "TYPGbv47eFGBCDvjrPZNgXs3JfrqPMTWS9",
+
+    async setTronWeb(tronWeb) {
+        this.tronWeb = tronWeb;
+
+        console.log("addtrontwqe", window.tronWeb.defaultAddress.base58)
+        this.contract = await tronWeb.contract().at(contractAddress);
+    }
 };
+
+export default utils;
