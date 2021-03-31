@@ -31,8 +31,8 @@ export default function Admin(props) {
                     </div>
                     <span className="withdraw-amnt">{amount}</span>
                     <button type="button" className="btn btn-grad" onClick={() => {
-                        let amount = (props.getReleaseAmount(checkId));
-                        console.log("amo..", amount)
+                        (props.getReleaseAmount(checkId))
+
                         // setAmount(amount)
                     }}>check release amount</button>
                     <hr />

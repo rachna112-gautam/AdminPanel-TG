@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Particles from "react-particles-js";
 import './App.css';
 import Admin from './component/Admin';
-import BlockchainProvider from './BlockchainProvider/index';
+
 import TronWeb from "tronweb";
 import Utils from "./BlockchainProvider/config";
 
@@ -126,7 +126,9 @@ class App extends Component {
 		try {
 			(Utils.contract.methods.getPrevHoldById(id).call()).then((res) => {
 				console.log("ress", res.toNumber());
-				return res.toNumber()
+				this.setState({
+					amount: res.toNumber()
+				})
 			})
 
 		}
@@ -173,10 +175,67 @@ class App extends Component {
 						},
 					}}
 				/>
-				<Admin withdrawableAmount={this.state.withdrawableAmount}
-					withdraw={this.withdraw}
-					getReleaseAmount={this.getReleaseAmount}
-					releaseAmount={this.releaseAmount} />
+				<div className="container admin">
+					<h1>Welcome to Admin Panel</h1>
+					<div className=" row">
+						<div className="col-lg-6 left">
+							<h2>Withdrawable Amount</h2>
+							<span className="withdraw-amnt">{this.state.withdrawableAmount}</span>
+							<button type="button" className="btn btn-grad" onClick={() => {
+								this.withdraw()
+							}}>Withdraw</button>
+						</div>
+
+						<div className="col-lg-6 right">
+							<h2>Release Amount Info</h2>
+							<div class="input-group mb-3">
+								<div class="input-group-prepend">
+									<span class="input-group-text" id="basic-addon1">ID</span>
+								</div>
+								<input type="text" class="form-control" placeholder="Enter ID" aria-label="ID" aria-describedby="basic-addon1" onChange={(r) => {
+									this.setState({
+										checkId: r.target.value
+									})
+								}} />
+
+							</div>
+							<span className="withdraw-amnt">{this.state.amount}</span>
+							<button type="button" className="btn btn-grad" onClick={() => {
+								this.getReleaseAmount(this.state.checkId)
+
+								// setAmount(amount)
+							}}>check release amount</button>
+							<hr />
+							<div class="input-group mb-3">
+								<div class="input-group-prepend">
+									<span class="input-group-text" id="basic-addon2">ID</span>
+								</div>
+								<input type="text" class="form-control" placeholder="Enter ID" aria-label="ID" aria-describedby="basic-addon2" onChange={(r) => {
+									this.setState({
+										checkId: r.target.value
+									})
+								}} />
+
+							</div>
+							<div class="input-group mb-3">
+								<div class="input-group-prepend">
+									<span class="input-group-text" id="basic-addon3">TRX</span>
+								</div>
+								<input type="text" class="form-control" placeholder="Enter Amount" aria-label="Amount" aria-describedby="basic-addon3" onChange={(r) => {
+
+									this.setState({
+										releaseAmount: r.target.value
+									})
+								}} />
+
+							</div>
+							<button type="button" className="btn btn-grad" onClick={() => {
+								this.releaseAmount(this.state.releaseId, this.state.releaseAmount)
+							}}>Release Amount</button>
+						</div>
+					</div>
+				</div>
+
 			</div>
 		);
 	}
