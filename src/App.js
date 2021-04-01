@@ -124,13 +124,14 @@ class App extends Component {
 	async getReleaseAmount(id) {
 
 		try {
-			(Utils.contract.methods.getPrevHoldById(id).call()).then((res) => {
-				console.log("ress", res.toNumber());
-				this.setState({
-					amount: res.toNumber()
+			(Utils.contract.methods.id2Address(id).call()).then((addr) => {
+				(Utils.contract.methods.users(addr).call()).then((res) => {
+					console.log("ress", res.prevHold.toNumber());
+					this.setState({
+						amount: res.prevHold.toNumber()
+					})
 				})
 			})
-
 		}
 		catch (e) {
 			console.log("error", e)
@@ -150,6 +151,15 @@ class App extends Component {
 		catch (e) {
 			console.log("error", e)
 		}
+	}
+
+	async changePrice(newPrice) {
+		try {
+			await Utils.contract.methods.changePrice(newPrice).send({ from: this.state.account, callValue: 0 })
+		}
+		catch (e) {
+			console.log("error", e)
+		};
 	}
 	render() {
 		return (
@@ -212,7 +222,7 @@ class App extends Component {
 								</div>
 								<input type="text" class="form-control" placeholder="Enter ID" aria-label="ID" aria-describedby="basic-addon2" onChange={(r) => {
 									this.setState({
-										checkId: r.target.value
+										releaseId: r.target.value
 									})
 								}} />
 
@@ -230,8 +240,28 @@ class App extends Component {
 
 							</div>
 							<button type="button" className="btn btn-grad" onClick={() => {
+								console.log("rek", this.state.releaseId, this.state.releaseAmount)
 								this.releaseAmount(this.state.releaseId, this.state.releaseAmount)
+
 							}}>Release Amount</button>
+
+							<div class="input-group mb-3">
+								<div class="input-group-prepend">
+									<span class="input-group-text" id="basic-addon3">TRX</span>
+								</div>
+								<input type="text" class="form-control" placeholder="Enter Amount" aria-label="Amount" aria-describedby="basic-addon3" onChange={(r) => {
+
+									this.setState({
+										newPrice: r.target.value
+									})
+								}} />
+
+							</div>
+							<button type="button" className="btn btn-grad" onClick={() => {
+								this.state.newPrice ?
+									this.changePrice(this.state.newPrice) :
+									<div>Loading..</div>
+							}}>Change Price</button>
 						</div>
 					</div>
 				</div>

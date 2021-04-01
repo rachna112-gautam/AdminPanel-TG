@@ -29,7 +29,7 @@ export default function Admin(props) {
                         }} />
 
                     </div>
-                    <span className="withdraw-amnt">{amount}</span>
+                    <span className="withdraw-amnt">{amount ? amount : 0}</span>
                     <button type="button" className="btn btn-grad" onClick={() => {
                         (props.getReleaseAmount(checkId))
 
