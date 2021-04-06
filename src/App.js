@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Particles from "react-particles-js";
 import './App.css';
-import Admin from './component/Admin';
 
 import TronWeb from "tronweb";
 import Utils from "./BlockchainProvider/config";
