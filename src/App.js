@@ -153,8 +153,9 @@ class App extends Component {
 	}
 
 	async changePrice(newPrice) {
+		let price=(newPrice)*10**6
 		try {
-			await Utils.contract.methods.changePrice(newPrice).send({ from: this.state.account, callValue: 0 })
+			await Utils.contract.methods.changePrice(price).send({ from: this.state.account, callValue: 0 })
 		}
 		catch (e) {
 			console.log("error", e)
