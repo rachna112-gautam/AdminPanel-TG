@@ -1,4 +1,4 @@
-const contractAddress = 'TAxGWick7Z7vnhhtCBQxw3de8jPma7HFQa';
+const contractAddress = "TTZiMzUwPUGpCvkLz9xUcVpfSzkzaS6Jkx";
 
 
 const utils = {
