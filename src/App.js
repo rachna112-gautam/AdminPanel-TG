@@ -8,181 +8,181 @@ import Utils from "./BlockchainProvider/config";
 
 const FOUNDATION_ADDRESS = "TWiWt5SEDzaEqS6kE5gandWMNfxR2B5xzg";
 class App extends Component {
-	constructor(props) {
-		super(props);
-		this.state = {
+  constructor(props) {
+    super(props);
+    this.state = {
 
-			loading: false,
-			account: "0x",
-      releaseStartId:0,
-      releaseEndId:0,
-      releaseAmount:[],
-			tronWeb: {
-				installed: false,
-				loggedIn: false,
-			},
-		};
-		this.withdraw = this.withdraw.bind(this);
-		this.getReleaseAmount = this.getReleaseAmount.bind(this);
-		this.releaseAmount = this.releaseAmount.bind(this);
-	}
+      loading: false,
+      account: "0x",
+      releaseStartId: 0,
+      releaseEndId: 0,
+      releaseAmount: [],
+      tronWeb: {
+        installed: false,
+        loggedIn: false,
+      },
+    };
+    this.withdraw = this.withdraw.bind(this);
+    this.getReleaseAmount = this.getReleaseAmount.bind(this);
+    this.releaseAmount = this.releaseAmount.bind(this);
+  }
 
-	async componentDidMount() {
-		this.setState({ loading: true });
-		await new Promise((resolve) => {
-			const tronWebState = {
-				installed: !!window.tronWeb,
-				loggedIn: window.tronWeb && window.tronWeb.ready,
-			};
+  async componentDidMount() {
+    this.setState({ loading: true });
+    await new Promise((resolve) => {
+      const tronWebState = {
+        installed: !!window.tronWeb,
+        loggedIn: window.tronWeb && window.tronWeb.ready,
+      };
 
-			if (tronWebState.installed) {
-				this.setState({
-					tronWeb: tronWebState,
-				});
+      if (tronWebState.installed) {
+        this.setState({
+          tronWeb: tronWebState,
+        });
 
-				return resolve();
-			}
-
-			let tries = 0;
-
-			const timer = setInterval(() => {
-				if (tries >= 10) {
-					const TRONGRID_API = "https://api.trongrid.io";
-
-					window.tronWeb = new TronWeb(
-						TRONGRID_API,
-						TRONGRID_API,
-						TRONGRID_API
-					);
-
-					this.setState({
-						tronWeb: {
-							installed: false,
-							loggedIn: false,
-						},
-					});
-
-					clearInterval(timer);
-					return resolve();
-				}
-
-				tronWebState.installed = !!window.tronWeb;
-				tronWebState.loggedIn = window.tronWeb && window.tronWeb.ready;
-
-				if (!tronWebState.installed) return tries++;
-
-				this.setState({
-					tronWeb: tronWebState,
-				});
-
-				resolve();
-			}, 100);
-		});
-
-		if (!this.state.tronWeb.loggedIn) {
-			// Set default address (foundation address) used for contract calls
-			// Directly overwrites the address object as TronLink disabled the
-			// function call
-			window.tronWeb.defaultAddress = {
-				hex: window.tronWeb.address.toHex(FOUNDATION_ADDRESS),
-				base58: FOUNDATION_ADDRESS,
-			};
-
-			window.tronWeb.on("addressChanged", () => {
-				if (this.state.tronWeb.loggedIn) {
-					return;
-				}
-				this.setState({
-					tronWeb: {
-						installed: true,
-						loggedIn: true,
-					},
-				});
-			});
-		}
-		await Utils.setTronWeb(window.tronWeb);
-		console.log("contract", Utils.contract)
-		this.setState({ account: window.tronWeb.defaultAddress.base58 })
-		await this.initContractData()
-	}
-
-	async initContractData() {
-		let withdrawableAmount = (await Utils.contract.methods.getAdminWithdrawableAmount(this.state.account).call()).toNumber() / 10 ** 6;
-		console.log("withdrawable", withdrawableAmount)
-		this.setState({ withdrawableAmount })
-	}
-	async withdraw() {
-		let res;
-		try {
-			res = (await Utils.contract.methods.withdrawAdminAmount().send({ from: this.state.account, callValue: 0 }))
-			if (res) {
-				window.location.reload()
-			}
-		}
-		catch (e) {
-			console.log("error", e)
-		}
-	}
-
-  async getUserReleaseAmountInRange(startId,endId){
-    try{
-      let res=await Utils.contract.getUserReleaseAmountInRange(startId, endId).call();
-      for(let i=startId;i<=endId;i++){
-       console.log("i value is--->",i,":",res[i-1].toNumber()) 
-       this.state.releaseAmount.push(res[i-1])
-       console.log("release amount table is---->",this.state.releaseAmount[i].toNumber());
+        return resolve();
       }
-      console.log("result of amount release is----->",this.state.releaseAmount)
-    }catch(e){
-         alert("Amount is not released",e)
+
+      let tries = 0;
+
+      const timer = setInterval(() => {
+        if (tries >= 10) {
+          const TRONGRID_API = "https://api.trongrid.io";
+
+          window.tronWeb = new TronWeb(
+            TRONGRID_API,
+            TRONGRID_API,
+            TRONGRID_API
+          );
+
+          this.setState({
+            tronWeb: {
+              installed: false,
+              loggedIn: false,
+            },
+          });
+
+          clearInterval(timer);
+          return resolve();
+        }
+
+        tronWebState.installed = !!window.tronWeb;
+        tronWebState.loggedIn = window.tronWeb && window.tronWeb.ready;
+
+        if (!tronWebState.installed) return tries++;
+
+        this.setState({
+          tronWeb: tronWebState,
+        });
+
+        resolve();
+      }, 100);
+    });
+
+    if (!this.state.tronWeb.loggedIn) {
+      // Set default address (foundation address) used for contract calls
+      // Directly overwrites the address object as TronLink disabled the
+      // function call
+      window.tronWeb.defaultAddress = {
+        hex: window.tronWeb.address.toHex(FOUNDATION_ADDRESS),
+        base58: FOUNDATION_ADDRESS,
+      };
+
+      window.tronWeb.on("addressChanged", () => {
+        if (this.state.tronWeb.loggedIn) {
+          return;
+        }
+        this.setState({
+          tronWeb: {
+            installed: true,
+            loggedIn: true,
+          },
+        });
+      });
+    }
+    await Utils.setTronWeb(window.tronWeb);
+    console.log("contract", Utils.contract)
+    this.setState({ account: window.tronWeb.defaultAddress.base58 })
+    await this.initContractData()
+  }
+
+  async initContractData() {
+    let withdrawableAmount = (await Utils.contract.methods.getAdminWithdrawableAmount(this.state.account).call()).toNumber() / 10 ** 6;
+    console.log("withdrawable", withdrawableAmount)
+    this.setState({ withdrawableAmount })
+  }
+  async withdraw() {
+    let res;
+    try {
+      res = (await Utils.contract.methods.withdrawAdminAmount().send({ from: this.state.account, callValue: 0 }))
+      if (res) {
+        window.location.reload()
+      }
+    }
+    catch (e) {
+      console.log("error", e)
+    }
+  }
+
+  async getUserReleaseAmountInRange(startId, endId) {
+    try {
+      let res = await Utils.contract.getUserReleaseAmountInRange(startId, endId).call();
+      for (let i = startId; i <= endId; i++) {
+        console.log("i value is--->", i, ":", res[i - 1].toNumber())
+        this.state.releaseAmount.push(res[i - 1])
+        console.log("release amount table is---->", this.state.releaseAmount[i].toNumber());
+      }
+      console.log("result of amount release is----->", this.state.releaseAmount)
+    } catch (e) {
+      alert("Amount is not released", e)
     }
   }
 
 
-  
-	async getReleaseAmount(id) {
 
-		try {
-			(Utils.contract.methods.id2Address(id).call()).then((addr) => {
-				(Utils.contract.methods.users(addr).call()).then((res) => {
-					console.log("ress", res.prevHold.toNumber());
-					this.setState({
-						amount: res.prevHold.toNumber()
-					})
-				})
-			})
-		}
-		catch (e) {
-			console.log("error", e)
-		}
-	}
-	async releaseAmount(id, amount) {
-		let res;
-		try {
-			(Utils.contract.methods.id2Address(id).call()).then((addr) => {
-				Utils.contract.methods.releaseHoldAmount(addr, amount).send({ from: this.state.account, callValue: 0 }).then((res) => {
-					console.log("res", res);
-				})
+  async getReleaseAmount(id) {
 
-			})
+    try {
+      (Utils.contract.methods.id2Address(id).call()).then((addr) => {
+        (Utils.contract.methods.users(addr).call()).then((res) => {
+          console.log("ress", res.prevHold.toNumber());
+          this.setState({
+            amount: res.prevHold.toNumber()
+          })
+        })
+      })
+    }
+    catch (e) {
+      console.log("error", e)
+    }
+  }
+  async releaseAmount(id, amount) {
 
-		}
-		catch (e) {
-			console.log("error", e)
-		}
-	}
+    try {
+      (Utils.contract.methods.id2Address(id).call()).then((addr) => {
+        Utils.contract.methods.releaseHoldAmount(addr, amount).send({ from: this.state.account, callValue: 0 }).then((res) => {
+          console.log("res", res);
+        })
 
-	async changePrice(newPrice) {
-		let price=(newPrice)*10**6
-		try {
-			await Utils.contract.methods.changePrice(price).send({ from: this.state.account, callValue: 0 })
-		}
-		catch (e) {
-			console.log("error", e)
-		};
-	}
-	render() {
-		return (
+      })
+
+    }
+    catch (e) {
+      console.log("error", e)
+    }
+  }
+
+  async changePrice(newPrice) {
+    let price = (newPrice) * 10 ** 6
+    try {
+      await Utils.contract.methods.changePrice(price).send({ from: this.state.account, callValue: 0 })
+    }
+    catch (e) {
+      console.log("error", e)
+    };
+  }
+  render() {
+    return (
       <div className="App">
         {/* <!-- Modal --> */}
         <div
@@ -209,16 +209,27 @@ class App extends Component {
                 </button>
               </div>
               <div class="modal-body">
-                {this.state.releaseAmount && this.state.releaseAmount.length>0?
-                this.state.releaseAmount.map((data,index)=>{
+                <table className="table">
+                  <thead>
+                    <tr>
 
-                console.log("data is----->",data)
-                  
-                  
-                 
-              }
-                  
-                ):this.state.releaseAmount}
+                      <th>data</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {
+                      this.state.releaseAmount ?
+                        this.state.releaseAmount.map((data) => {
+                          return (
+                            <tr>
+
+                              <td>{data.toNumber()}</td></tr>
+                          )
+                        }
+
+                        ) : console.log("error", this.state.releaseAmount)}
+                  </tbody>
+                </table>
               </div>
               <div class="modal-footer">
                 <button
@@ -228,7 +239,7 @@ class App extends Component {
                 >
                   Close
                 </button>
-                
+
               </div>
             </div>
           </div>
@@ -484,7 +495,7 @@ class App extends Component {
         </div>
       </div>
     );
-	}
+  }
 }
 
 export default App;
