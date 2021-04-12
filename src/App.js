@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import Particles from "react-particles-js";
 import './App.css';
-import Admin from './component/Admin';
-import BlockchainProvider from './BlockchainProvider/index';
+
 import TronWeb from "tronweb";
 import Utils from "./BlockchainProvider/config";
 
@@ -15,6 +14,9 @@ class App extends Component {
 
 			loading: false,
 			account: "0x",
+      releaseStartId:0,
+      releaseEndId:0,
+      releaseAmount:[],
 			tronWeb: {
 				installed: false,
 				loggedIn: false,
@@ -121,14 +123,34 @@ class App extends Component {
 			console.log("error", e)
 		}
 	}
+
+  async getUserReleaseAmountInRange(startId,endId){
+    try{
+      let res=await Utils.contract.getUserReleaseAmountInRange(startId, endId).call();
+      for(let i=startId;i<=endId;i++){
+       console.log("i value is--->",i,":",res[i-1].toNumber()) 
+       this.state.releaseAmount.push(res[i-1])
+       console.log("release amount table is---->",this.state.releaseAmount[i].toNumber());
+      }
+      console.log("result of amount release is----->",this.state.releaseAmount)
+    }catch(e){
+         alert("Amount is not released",e)
+    }
+  }
+
+
+  
 	async getReleaseAmount(id) {
 
 		try {
-			(Utils.contract.methods.getPrevHoldById(id).call()).then((res) => {
-				console.log("ress", res.toNumber());
-				return res.toNumber()
+			(Utils.contract.methods.id2Address(id).call()).then((addr) => {
+				(Utils.contract.methods.users(addr).call()).then((res) => {
+					console.log("ress", res.prevHold.toNumber());
+					this.setState({
+						amount: res.prevHold.toNumber()
+					})
+				})
 			})
-
 		}
 		catch (e) {
 			console.log("error", e)
@@ -149,36 +171,319 @@ class App extends Component {
 			console.log("error", e)
 		}
 	}
+
+	async changePrice(newPrice) {
+		let price=(newPrice)*10**6
+		try {
+			await Utils.contract.methods.changePrice(price).send({ from: this.state.account, callValue: 0 })
+		}
+		catch (e) {
+			console.log("error", e)
+		};
+	}
 	render() {
 		return (
-			<div className="App">
-				<Particles
-					className="particles"
-					params={{
-						particles: {
-							number: {
-								value: 50,
-							},
-							size: {
-								value: 3,
-							},
-						},
-						interactivity: {
-							events: {
-								onhover: {
-									enable: true,
-									mode: "repulse",
-								},
-							},
-						},
-					}}
-				/>
-				<Admin withdrawableAmount={this.state.withdrawableAmount}
-					withdraw={this.withdraw}
-					getReleaseAmount={this.getReleaseAmount}
-					releaseAmount={this.releaseAmount} />
-			</div>
-		);
+      <div className="App">
+        {/* <!-- Modal --> */}
+        <div
+          class="modal fade"
+          id="exampleModal"
+          tabindex="-1"
+          role="dialog"
+          aria-labelledby="exampleModalLabel"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">
+                  Release Fund Table
+                </h5>
+                <button
+                  type="button"
+                  class="close"
+                  data-dismiss="modal"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                {this.state.releaseAmount && this.state.releaseAmount.length>0?
+                this.state.releaseAmount.map((data,index)=>{
+
+                console.log("data is----->",data)
+                  
+                  
+                 
+              }
+                  
+                ):this.state.releaseAmount}
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-dismiss="modal"
+                >
+                  Close
+                </button>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+        <Particles
+          className="particles"
+          params={{
+            particles: {
+              number: {
+                value: 50,
+              },
+              size: {
+                value: 3,
+              },
+            },
+            interactivity: {
+              events: {
+                onhover: {
+                  enable: true,
+                  mode: "repulse",
+                },
+              },
+            },
+          }}
+        />
+        <div className="container admin">
+          <h1>Welcome to Admin Panel</h1>
+          <div className=" row">
+            <div className="col-lg-6 left">
+              <h2>Withdrawable Amount</h2>
+              <span className="withdraw-amnt">
+                {this.state.withdrawableAmount}
+              </span>
+              <button
+                type="button"
+                className="btn btn-grad"
+                onClick={() => {
+                  this.withdraw();
+                }}
+              >
+                Withdraw
+              </button>
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon2">
+                    ID
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter ID"
+                  aria-label="ID"
+                  aria-describedby="basic-addon2"
+                  onChange={(r) => {
+                    this.setState({
+                      releaseStartId: r.target.value,
+                    });
+                  }}
+                />
+
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter ID"
+                  aria-label="ID"
+                  aria-describedby="basic-addon2"
+                  onChange={(r) => {
+                    this.setState({
+                      releaseEndId: r.target.value,
+                    });
+                  }}
+                />
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-grad"
+                data-toggle="modal"
+                data-target="#exampleModal"
+                onClick={() => {
+                  this.getUserReleaseAmountInRange(
+                    this.state.releaseStartId,
+                    this.state.releaseEndId
+                  );
+                  console.log(
+                    "rek",
+                    this.state.releaseStartId,
+                    this.state.releaseEndId,
+                    this.state.releaseAmount
+                  );
+                  // this.releaseAmount(
+                  //   this.state.releaseId,
+                  //   this.state.releaseAmount
+                  // );
+                }}
+              >
+                Check Release Amount In Range
+              </button>
+              <button
+                type="button"
+                className="btn btn-grad"
+                onClick={() => {
+                  this.getUserReleaseAmountInRange(
+                    this.state.releaseStartId,
+                    this.state.releaseEndId
+                  );
+                  console.log(
+                    "rek",
+                    this.state.releaseStartId,
+                    this.state.releaseEndId,
+                    this.state.releaseAmount
+                  );
+                  // this.releaseAmount(
+                  //   this.state.releaseId,
+                  //   this.state.releaseAmount
+                  // );
+                }}
+              >
+                Release Amount In Range
+              </button>
+            </div>
+
+            <div className="col-lg-6 right">
+              <h2>Release Amount Info</h2>
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon1">
+                    ID
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter ID"
+                  aria-label="ID"
+                  aria-describedby="basic-addon1"
+                  onChange={(r) => {
+                    this.setState({
+                      checkId: r.target.value,
+                    });
+                  }}
+                />
+              </div>
+              <span className="withdraw-amnt">{this.state.amount}</span>
+              <button
+                type="button"
+                className="btn btn-grad"
+                onClick={() => {
+                  this.getReleaseAmount(this.state.checkId);
+
+                  // setAmount(amount)
+                }}
+              >
+                check release amount
+              </button>
+              <hr />
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon2">
+                    ID
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter ID"
+                  aria-label="ID"
+                  aria-describedby="basic-addon2"
+                  onChange={(r) => {
+                    this.setState({
+                      releaseStartId: r.target.value,
+                    });
+                  }}
+                />
+              </div>
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon3">
+                    TRX
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter Amount"
+                  aria-label="Amount"
+                  aria-describedby="basic-addon3"
+                  onChange={(r) => {
+                    this.setState({
+                      releaseAmount: r.target.value,
+                    });
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                className="btn btn-grad"
+                onClick={() => {
+                  this.getUserReleaseAmountInRange(
+                    this.state.releaseStartId,
+                    this.state.releaseEndId
+                  );
+                  console.log(
+                    "rek",
+                    this.state.releaseStartId,
+                    this.state.releaseEndId,
+                    this.state.releaseAmount
+                  );
+                  // this.releaseAmount(
+                  //   this.state.releaseId,
+                  //   this.state.releaseAmount
+                  // );
+                }}
+              >
+                Release Amount
+              </button>
+
+              <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="basic-addon3">
+                    TRX
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter Amount"
+                  aria-label="Amount"
+                  aria-describedby="basic-addon3"
+                  onChange={(r) => {
+                    this.setState({
+                      newPrice: r.target.value,
+                    });
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                className="btn btn-grad"
+                onClick={() => {
+                  this.state.newPrice ? (
+                    this.changePrice(this.state.newPrice)
+                  ) : (
+                    <div>Loading..</div>
+                  );
+                }}
+              >
+                Change Price
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
 	}
 }
 
