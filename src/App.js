@@ -125,6 +125,7 @@ class App extends Component {
   }
 
   async getUserReleaseAmountInRange(startId, endId) {
+    // this.setState({releaseAmount:[]})
     try {
       let res = await Utils.contract.getUserReleaseAmountInRange(startId, endId).call();
       for (let i = startId; i <= endId; i++) {
@@ -343,6 +344,7 @@ class App extends Component {
                 type="button"
                 className="btn btn-grad"
                 onClick={() => {
+                  
                   this.getUserReleaseAmountInRange(
                     this.state.releaseStartId,
                     this.state.releaseEndId
